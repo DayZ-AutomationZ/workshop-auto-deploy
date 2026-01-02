@@ -359,14 +359,14 @@ footer a:hover{ color:#e7ebf0; }
       <h3>What it does</h3>
       <ul>
         <li>Monitors your DayZ Workshop mods and detects updates quickly.</li>
-        <li>Deploys updated files to your server (FTP/FTPS workflow).</li>
-        <li>Uploads a small marker file so other tools can react reliably.</li>
+        <li>Deploys updated files to your server (LOCAL or FTP/FTPS workflow).</li>
+        <li>Uploads a small marker file so Restart Companion can react reliably if used together (recommended!).</li>
         <li>Optional Discord webhook notifications (so you see it instantly).</li>
       </ul>
 
       <h3>Why it matters</h3>
       <ul>
-        <li>Less downtime and fewer “server is broken” reports.</li>
+        <li>Less downtime and fewer “server is broken” reports. Or none by using Restart Companion</li>
         <li>Stops the “client has different version” chaos after mod pushes.</li>
         <li>Turns a panic situation into a predictable pipeline.</li>
       </ul>
@@ -389,7 +389,7 @@ footer a:hover{ color:#e7ebf0; }
       <h3>What it does</h3>
       <ul>
         <li>Watches a marker file (from Auto-Deploy) to know when deployment happened.</li>
-        <li>Waits a configurable delay, then sends a BattlEye RCON command.</li>
+        <li>Waits a configurable delay, then sends a BattlEye RCON command or local command.</li>
         <li>Resets the timer if another update arrives (no restart spam).</li>
         <li>Discord notification when a restart is triggered.</li>
       </ul>
@@ -466,6 +466,7 @@ footer a:hover{ color:#e7ebf0; }
 
 </body>
 </html>
+
 
 
 
