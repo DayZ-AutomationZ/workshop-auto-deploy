@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AutomationZ — Mod Update Auto-Deploy + Restart Companion</title>
+
+<meta name="description" content="AutomationZ tools for DayZ server admins: automatically detect Workshop mod updates, deploy to your server, and optionally trigger an RCON restart — with Discord notifications." />
+
+<style>
+:root{
+  --bg:#0b0f14;
+  --panel:#121823;
+  --panel2:#0f1520;
+  --text:#e7ebf0;
+  --muted:#a9b1bd;
+  --accent:#4CAF50; /* AutomationZ green */
+  --accent2:#7bdc7f;
+  --warn:#ffb74d;
+  --line:rgba(255,255,255,0.08);
+
+  /* Put banner.png in the same folder as this HTML */
+  --hero-image: url("banner.png");
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,"Helvetica Neue",Arial;
+  background:var(--bg);
+  color:var(--text);
+  line-height:1.65;
+}
+
+/* SEO-only title */
+.visually-hidden{
+  position:absolute;
+  width:1px;height:1px;
+  padding:0;margin:-1px;
+  overflow:hidden;
+  clip:rect(0,0,0,0);
+  white-space:nowrap;border:0;
+}
+
+/* HERO */
+.hero{
+  position:relative;
+  min-height:78vh;
+  background:var(--hero-image) center/cover no-repeat;
+  display:flex;
+  align-items:flex-end;
+}
+
+.hero::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(
+    to top,
+    rgba(11,15,20,0.93) 0%,
+    rgba(11,15,20,0.62) 35%,
+    rgba(11,15,20,0.20) 72%,
+    rgba(11,15,20,0.00) 100%
+  );
+}
+
+.hero-content{
+  position:relative;
+  z-index:2;
+  max-width:1060px;
+  padding:3.5rem 2rem 3rem 2rem;
+}
+
+.kicker{
+  display:inline-flex;
+  align-items:center;
+  gap:.6rem;
+  font-size:.9rem;
+  color:#cfe7d1;
+  background:rgba(76,175,80,0.12);
+  border:1px solid rgba(76,175,80,0.28);
+  padding:.35rem .7rem;
+  border-radius:999px;
+  margin-bottom:1rem;
+}
+
+.hero h2{
+  margin:0 0 .6rem 0;
+  font-size:2.2rem;
+  letter-spacing:-0.02em;
+}
+
+.hero p{
+  max-width:820px;
+  color:var(--muted);
+  font-size:1.05rem;
+  margin:0.3rem 0 0;
+}
+
+/* TAGS */
+.tags{
+  display:flex;
+  gap:.6rem;
+  flex-wrap:wrap;
+  margin-top:1.2rem;
+}
+
+.tag{
+  font-size:.82rem;
+  padding:.4rem .75rem;
+  border-radius:999px;
+  background:rgba(26,34,48,0.72);
+  border:1px solid rgba(255,255,255,0.08);
+  color:#d7dce3;
+}
+
+/* CONTENT */
+.container{
+  max-width:1120px;
+  margin:auto;
+  padding:3.2rem 2rem 4rem;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:2rem;
+  margin-top:1.5rem;
+}
+
+.card{
+  background:linear-gradient(180deg, rgba(18,24,35,0.92), rgba(15,21,32,0.92));
+  border-radius:18px;
+  padding:2rem;
+  border:1px solid var(--line);
+  box-shadow:0 10px 30px rgba(0,0,0,0.35);
+}
+
+.card h2{
+  margin:0 0 .6rem 0;
+  font-size:1.35rem;
+}
+
+.card h3{
+  margin:1.4rem 0 .6rem;
+  font-size:1.05rem;
+  color:#dfe6ef;
+}
+
+.card p{
+  color:#d2d9e3;
+  margin:.6rem 0;
+}
+
+.badge{
+  display:inline-block;
+  font-size:.72rem;
+  padding:.18rem .55rem;
+  border-radius:999px;
+  margin-left:.5rem;
+  border:1px solid var(--line);
+  color:#d7dce3;
+  background:rgba(255,255,255,0.04);
+  vertical-align:middle;
+}
+
+.badge.green{
+  border-color:rgba(76,175,80,0.35);
+  background:rgba(76,175,80,0.12);
+  color:#dff3e1;
+}
+
+.quote{
+  border-left:3px solid var(--accent);
+  padding:1rem 1rem 1rem 1.1rem;
+  margin:1.2rem 0 1.4rem;
+  color:#cfd6df;
+  background:rgba(0,0,0,0.18);
+  border-radius:12px;
+}
+
+ul{
+  padding-left:1.2rem;
+  margin:.6rem 0 0;
+}
+
+li{
+  margin:.55rem 0;
+  color:#d2d9e3;
+}
+
+.section{
+  margin-top:2rem;
+  padding:2rem;
+  background:rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.07);
+  border-radius:18px;
+}
+
+.section h2{
+  margin:0 0 .6rem 0;
+}
+
+.section p{
+  color:#d2d9e3;
+  margin:.6rem 0;
+}
+
+.callout{
+  margin-top:1.2rem;
+  padding:1.1rem 1.2rem;
+  border-radius:14px;
+  background:rgba(76,175,80,0.10);
+  border:1px solid rgba(76,175,80,0.28);
+  color:#dff3e1;
+}
+
+.links{
+  display:flex;
+  flex-wrap:wrap;
+  gap:.7rem;
+  margin-top:1rem;
+}
+
+.btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:.55rem;
+  padding:.6rem .95rem;
+  border-radius:12px;
+  border:1px solid var(--line);
+  background:rgba(255,255,255,0.04);
+  color:var(--text);
+  text-decoration:none;
+  font-weight:600;
+  font-size:.95rem;
+}
+
+.btn:hover{ border-color:rgba(255,255,255,0.18); }
+.btn.primary{
+  background:rgba(76,175,80,0.14);
+  border-color:rgba(76,175,80,0.35);
+  color:#e9ffee;
+}
+.btn.primary:hover{ border-color:rgba(76,175,80,0.55); }
+
+hr.sep{
+  border:0;
+  border-top:1px solid rgba(255,255,255,0.08);
+  margin:1.4rem 0;
+}
+
+/* Screenshot gallery */
+.gallery{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:1rem;
+  margin-top:1rem;
+}
+
+.shot{
+  border-radius:14px;
+  overflow:hidden;
+  border:1px solid var(--line);
+  background:rgba(0,0,0,0.18);
+}
+
+.shot img{
+  display:block;
+  width:100%;
+  height:auto;
+}
+
+.caption{
+  padding:.8rem .9rem;
+  color:#cfd6df;
+  font-size:.92rem;
+}
+
+small.muted{ color:var(--muted); }
+
+/* FOOTER */
+footer{
+  text-align:center;
+  padding:3rem 2rem;
+  color:#8e98a7;
+  font-size:.95rem;
+}
+
+footer a{
+  color:#b7c0cf;
+  text-decoration:none;
+  border-bottom:1px dotted rgba(255,255,255,0.18);
+}
+footer a:hover{ color:#e7ebf0; }
+
+/* MOBILE */
+@media(max-width:980px){
+  .grid{ grid-template-columns:1fr; }
+  .gallery{ grid-template-columns:1fr; }
+  .hero{ min-height:70vh; }
+  .hero-content{ padding:3rem 1.2rem 2.2rem; }
+  .hero h2{ font-size:1.9rem; }
+}
+</style>
+</head>
+
+<body>
+
+<h1 class="visually-hidden">AutomationZ — Mod Update Auto-Deploy + Restart Companion</h1>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-content">
+    <div class="kicker">🟩 AutomationZ Tools • DayZ Admin Automation</div>
+
+    <h2>Stop Workshop Updates from Breaking Your Server.</h2>
+    <p>
+      AutomationZ <strong>Mod Update Auto-Deploy</strong> detects Workshop mod updates and deploys them to your server.
+      Pair it with <strong>Restart Companion</strong> to trigger an automatic RCON restart after a safe delay —
+      plus optional Discord notifications so you always know what happened.
+    </p>
+
+    <div class="tags">
+      <span class="tag">Detect updates</span>
+      <span class="tag">Auto-deploy</span>
+      <span class="tag">Discord notify</span>
+      <span class="tag">RCON restart</span>
+      <span class="tag">Built for admins</span>
+    </div>
+  </div>
+</section>
+
+<main class="container">
+
+  <div class="grid">
+
+    <!-- MOD UPDATER -->
+    <div class="card">
+      <h2>AutomationZ Mod Update Auto-Deploy <span class="badge green">core</span></h2>
+
+      <p>
+        When a Workshop mod updates, servers often desync client/server PBOs and players get hit with errors.
+        This tool watches your Workshop folder and detects changes — then deploys the updated mod files
+        to your server automatically.
+      </p>
+
+      <div class="quote">
+        “No admin online? Update dropped? Players getting errors?”<br/>
+        Detect → Upload → Confirm → Notify.
+      </div>
+
+      <h3>What it does</h3>
+      <ul>
+        <li>Monitors your DayZ Workshop mods and detects updates quickly.</li>
+        <li>Deploys updated files to your server (FTP/FTPS workflow).</li>
+        <li>Uploads a small marker file so other tools can react reliably.</li>
+        <li>Optional Discord webhook notifications (so you see it instantly).</li>
+      </ul>
+
+      <h3>Why it matters</h3>
+      <ul>
+        <li>Less downtime and fewer “server is broken” reports.</li>
+        <li>Stops the “client has different version” chaos after mod pushes.</li>
+        <li>Turns a panic situation into a predictable pipeline.</li>
+      </ul>
+
+      <div class="links">
+        <!-- Replace these with your real repo links -->
+        <a class="btn primary" href="https://github.com/DayZ-AutomationZ" target="_blank" rel="noopener">GitHub</a>
+        <a class="btn" href="#" target="_blank" rel="noopener">Mod Updater Repo</a>
+      </div>
+    </div>
+
+    <!-- RESTART COMPANION -->
+    <div class="card">
+      <h2>AutomationZ Restart Companion <span class="badge">optional</span></h2>
+
+      <p>
+        Deployment is only half the story. Some servers need a restart after updates —
+        but restarting too fast can interrupt players, or restart while another update is still coming in.
+      </p>
+
+      <h3>What it does</h3>
+      <ul>
+        <li>Watches a marker file (from Auto-Deploy) to know when deployment happened.</li>
+        <li>Waits a configurable delay, then sends a BattlEye RCON command.</li>
+        <li>Resets the timer if another update arrives (no restart spam).</li>
+        <li>Discord notification when a restart is triggered.</li>
+      </ul>
+
+      <div class="callout">
+        The goal isn’t “restart more.” It’s <strong>restart only when it’s safe</strong> — and only once.
+      </div>
+
+      <h3>Best use case</h3>
+      <ul>
+        <li>Community servers that want updates deployed automatically.</li>
+        <li>Admins who can’t be online 24/7 to babysit Workshop pushes.</li>
+        <li>Servers that need a clean restart to apply changes reliably.</li>
+      </ul>
+
+      <div class="links">
+        <!-- Replace this with your real repo link -->
+        <a class="btn" href="#" target="_blank" rel="noopener">Restart Companion Repo</a>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- HOW IT FLOWS -->
+  <section class="section">
+    <h2>How the pipeline works</h2>
+    <p>
+      The tools are designed like a simple, reliable chain. You can run only Auto-Deploy — or run both
+      for a complete “update → deploy → restart” workflow.
+    </p>
+
+    <ul>
+      <li><strong>1) Workshop update detected</strong> (Auto-Deploy sees files change)</li>
+      <li><strong>2) Files uploaded</strong> to the server</li>
+      <li><strong>3) Marker updated</strong> (signal for other automation)</li>
+      <li><strong>4) Restart Companion waits</strong> (delay, resets on new updates)</li>
+      <li><strong>5) RCON restart</strong> triggers once, then Discord confirms</li>
+    </ul>
+
+    <div class="callout">
+      Admins shouldn’t have to choose between “be online” and “server stays healthy.”
+      Automate the boring part so you can focus on the community.
+    </div>
+  </section>
+
+  <!-- SCREENSHOTS -->
+  <section class="section">
+    <h2>Screenshots <small class="muted">(optional)</small></h2>
+    <p>
+      Drop screenshots in the same folder and rename them to match below — or edit filenames in this HTML.
+    </p>
+
+    <div class="gallery">
+      <div class="shot">
+        <img src="shot-mod-updater.png" alt="AutomationZ Mod Update Auto-Deploy screenshot" />
+        <div class="caption">Mod Update Auto-Deploy (dashboard + deploy log)</div>
+      </div>
+
+      <div class="shot">
+        <img src="shot-restart-companion.png" alt="AutomationZ Restart Companion screenshot" />
+        <div class="caption">Restart Companion (monitor + RCON action)</div>
+      </div>
+    </div>
+
+    <hr class="sep" />
+
+    <p class="muted">
+      Tip: Keep screenshots around <strong>1400–2000px wide</strong> for clean rendering on GitHub Pages.
+    </p>
+  </section>
+
+  <!-- DOWNLOAD / QUICK START -->
+  <section class="section">
+    <h2>Quick start</h2>
+    <ul>
+      <li>Put this file as <strong>index.html</strong> in your GitHub Pages repo/folder.</li>
+      <li>Add your banner image as <strong>banner.png</strong> in the same folder.</li>
+      <li>(Optional) Add <strong>shot-mod-updater.png</strong> and <strong>shot-restart-companion.png</strong>.</li>
+      <li>Replace the repo links above with your real URLs.</li>
+    </ul>
+  </section>
+
+</main>
+
+<footer>
+  Created by <strong>Danny van den Brande</strong> • AutomationZ<br />
+  Licensed under <strong>MIT</strong> (recommended for a simple informative site & repo).<br />
+  <small class="muted">If you reuse the layout, keep attribution and tweak freely.</small>
+</footer>
+
+</body>
+</html>
